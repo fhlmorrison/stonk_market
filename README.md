@@ -3,10 +3,9 @@
 We built a stock exchange in Rust, complete with an order matching engine, price feed service 
 (UDP socket), TCP layer, and RESTful web server to execute trades, authorize accounts, 
 and persist orderbooks in memory.
-<br><br>
 
 ## Architecture
-Rust, Tokio, Hyper
+Rust + Tokio
 
 ## Resources
-Jane Street - How to build an exchange (<a href="https://www.youtube.com/watch?v=b1e4t2k2KJY"></a>)
+- Jane Street - How to build an exchange (https://www.youtube.com/watch?v=b1e4t2k2KJY)
