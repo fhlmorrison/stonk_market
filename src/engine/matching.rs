@@ -222,6 +222,7 @@ fn execute_trade(buy: &Order, sell: &Order, quantity: u64) {
     // todo!();
 }
 
+#[cfg(test)]
 mod matching_tests {
     use super::*;
 
