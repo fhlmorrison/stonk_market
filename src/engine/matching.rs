@@ -136,7 +136,7 @@ impl OrderBook {
                                     sell_order.quantity -= order.quantity;
 
                                     // Execute trade at order quantity
-                                    execute_trade(&order, &sell_order, order.quantity.clone());
+                                    execute_trade(self.symbol,&order, &sell_order, order.quantity.clone());
 
                                     order.quantity = 0;
 
@@ -146,7 +146,7 @@ impl OrderBook {
                                     order.quantity -= sell_order.quantity;
 
                                     // Execute trade at sell quantity
-                                    execute_trade(&order, &sell_order, sell_order.quantity);
+                                    execute_trade(self.symbol,&order, &sell_order, sell_order.quantity);
 
                                     // Remove empty limit
                                     if sell_limit.orders.is_empty() {
@@ -180,7 +180,7 @@ impl OrderBook {
                                     buy_order.quantity -= order.quantity;
 
                                     // Execute trade at order quantity
-                                    execute_trade(&order, &buy_order, order.quantity.clone());
+                                    execute_trade(self.symbol,&order, &buy_order, order.quantity.clone());
 
                                     order.quantity = 0;
 
@@ -190,7 +190,7 @@ impl OrderBook {
                                     order.quantity -= buy_order.quantity;
 
                                     // Execute trade at sell quantity
-                                    execute_trade(&order, &buy_order, buy_order.quantity);
+                                    execute_trade(self.symbol,&order, &buy_order, buy_order.quantity);
 
                                     // Remove empty limit
                                     if buy_limit.orders.is_empty() {
@@ -214,10 +214,10 @@ impl OrderBook {
     }
 }
 
-fn execute_trade(buy: &Order, sell: &Order, quantity: u64) {
+fn execute_trade(symbol: TickerSymbol, buy: &Order, sell: &Order, quantity: u64) {
     println!(
-        "Trade executed: {} => {} for {} @ {}",
-        buy.id, sell.id, quantity, sell.price
+        "Trade executed: {} {} @ {:.2} ({} => {})", symbol,
+        quantity, sell.price, buy.id, sell.id
     );
     // todo!();
 }
