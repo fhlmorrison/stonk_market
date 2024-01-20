@@ -1,7 +1,4 @@
-use std::{
-    collections::{binary_heap::PeekMut, BinaryHeap, HashMap, VecDeque},
-    ops::Deref,
-};
+use std::collections::{ BinaryHeap, HashMap, VecDeque};
 
 const FRACTIONAL_SCALAR: u64 = 100000;
 
@@ -214,4 +211,32 @@ fn execute_trade(buy: &Order, sell: &Order, quantity: u64) {
         buy.id, sell.id, quantity, sell.price
     );
     // todo!();
+}
+
+
+mod matching_tests {
+    use super::*;
+
+    #[test]
+    fn test() {
+        let orderbook = OrderBook::new(1);
+        let buy = Order {
+            id: 1,
+            price: Price::new(100.05),
+            quantity: 100,
+            side: Side::Buy,
+        };
+        let sell = Order {
+            id: 2,
+            price: Price::new(99.95),
+            quantity: 100,
+            side: Side::Sell,
+        };
+
+        orderbook.add_order(sell.clone());
+        orderbook.add_order(buy.clone());
+        orderbook.add_order(buy.clone());
+        orderbook.add_order(sell.clone());
+        println!("test");
+    }
 }
