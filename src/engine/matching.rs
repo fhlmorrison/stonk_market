@@ -1,4 +1,4 @@
-use std::collections::{ BinaryHeap, HashMap, VecDeque};
+use std::collections::{BinaryHeap, HashMap, VecDeque};
 
 const FRACTIONAL_SCALAR: u64 = 100000;
 
@@ -14,6 +14,11 @@ struct Order {
     price: Price,
     quantity: u64,
     side: Side,
+}
+
+struct Limit_Item {
+    price: Price,
+    quantity: u64,
 }
 
 struct Limit {
@@ -74,6 +79,32 @@ impl OrderBook {
         }
     }
 
+    fn insert_buy_order(&mut self, order: Order) {
+        if !self.buy_limits.contains_key(&order.price) {
+            self.buy_prices.push(order.price.clone());
+        }
+        self.buy_limits
+            .entry(order.price)
+            .or_insert(Limit {
+                price: order.price.clone(),
+                orders: VecDeque::new(),
+            })
+            .add_order(order);
+    }
+
+    fn insert_sell_order(&mut self, order: Order) {
+        if !self.sell_limits.contains_key(&order.price) {
+            self.sell_prices.push(order.price.clone());
+        }
+        self.sell_limits
+            .entry(order.price)
+            .or_insert(Limit {
+                price: order.price.clone(),
+                orders: VecDeque::new(),
+            })
+            .add_order(order);
+    }
+
     // FIFO (Price/time priority)
     fn add_order(&mut self, mut order: Order) {
         match order.side {
@@ -110,30 +141,12 @@ impl OrderBook {
                                     }
                                 }
                             } else {
-                                if !self.buy_limits.contains_key(&order.price) {
-                                    self.buy_prices.push(order.price.clone());
-                                }
-                                self.buy_limits
-                                    .entry(order.price)
-                                    .or_insert(Limit {
-                                        price: order.price.clone(),
-                                        orders: VecDeque::new(),
-                                    })
-                                    .add_order(order);
+                                self.insert_buy_order(order);
                                 break;
                             }
                         }
                         None => {
-                            if !self.buy_limits.contains_key(&order.price) {
-                                self.buy_prices.push(order.price.clone());
-                            }
-                            self.buy_limits
-                                .entry(order.price)
-                                .or_insert(Limit {
-                                    price: order.price.clone(),
-                                    orders: VecDeque::new(),
-                                })
-                                .add_order(order);
+                            self.insert_buy_order(order);
                             break;
                         }
                     }
@@ -172,30 +185,12 @@ impl OrderBook {
                                     }
                                 }
                             } else {
-                                if !self.sell_limits.contains_key(&order.price) {
-                                    self.sell_prices.push(order.price.clone());
-                                }
-                                self.sell_limits
-                                    .entry(order.price)
-                                    .or_insert(Limit {
-                                        price: order.price.clone(),
-                                        orders: VecDeque::new(),
-                                    })
-                                    .add_order(order);
+                                self.insert_sell_order(order);
                                 break;
                             }
                         }
                         None => {
-                            if !self.sell_limits.contains_key(&order.price) {
-                                self.sell_prices.push(order.price.clone());
-                            }
-                            self.sell_limits
-                                .entry(order.price)
-                                .or_insert(Limit {
-                                    price: order.price.clone(),
-                                    orders: VecDeque::new(),
-                                })
-                                .add_order(order);
+                            self.insert_sell_order(order);
                             break;
                         }
                     }
@@ -212,7 +207,6 @@ fn execute_trade(buy: &Order, sell: &Order, quantity: u64) {
     );
     // todo!();
 }
-
 
 mod matching_tests {
     use super::*;
