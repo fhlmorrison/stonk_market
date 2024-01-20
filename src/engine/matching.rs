@@ -219,7 +219,7 @@ mod matching_tests {
 
     #[test]
     fn test() {
-        let orderbook = OrderBook::new(1);
+        let mut orderbook = OrderBook::new(1);
         let buy = Order {
             id: 1,
             price: Price::new(100.05),

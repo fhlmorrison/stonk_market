@@ -3,6 +3,8 @@ use std::{
     net::{TcpListener, TcpStream, UdpSocket},
 };
 
+mod engine;
+
 fn handle_client(mut stream: TcpStream) {
     let mut buffer: [u8; 1024] = [0; 1024];
 
@@ -33,7 +35,7 @@ fn main() {
         // let stream = stream.unwrap();
     }
 
-    let priceFeedSocket = UdpSocket::bind("127.0.0.1:3400").expect("Failed to bind UDP");
+    let price_feed_socket = UdpSocket::bind("127.0.0.1:3400").expect("Failed to bind UDP");
 }
 
 // create heap
