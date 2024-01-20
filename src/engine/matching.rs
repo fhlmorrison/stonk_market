@@ -2,6 +2,25 @@ use std::collections::{BinaryHeap, HashMap, VecDeque};
 
 const FRACTIONAL_SCALAR: u64 = 100000;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct TickerSymbol([u8; 4]);
+
+impl TickerSymbol {
+    fn new(input: &str) -> Self {
+        let mut bytes = [0; 4];
+        input.as_bytes().iter().take(4).enumerate().for_each(|(i, byte)| {
+            bytes[i] = *byte;
+        });
+        TickerSymbol(bytes)
+    }
+}
+
+impl std::fmt::Display for TickerSymbol {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", std::str::from_utf8(&self.0).unwrap_or("NULL".into()))
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 enum Side {
     Buy,
@@ -56,7 +75,7 @@ impl Limit {
 }
 
 struct OrderBook {
-    id: u64,
+    symbol: TickerSymbol,
     buy_prices: BinaryHeap<Price>,
     buy_limits: HashMap<Price, Limit>,
     sell_prices: BinaryHeap<Price>,
@@ -64,9 +83,9 @@ struct OrderBook {
 }
 
 impl OrderBook {
-    fn new(id: u64) -> Self {
+    fn new(symbol: &str) -> Self {
         OrderBook {
-            id,
+            symbol: TickerSymbol::new(symbol),
             buy_prices: BinaryHeap::new(),
             buy_limits: HashMap::new(),
             sell_prices: BinaryHeap::new(),
@@ -208,7 +227,7 @@ mod matching_tests {
 
     #[test]
     fn test() {
-        let mut orderbook = OrderBook::new(1);
+        let mut orderbook = OrderBook::new("STNK");
         let buy = Order {
             id: 1,
             price: Price::new(100.05),
