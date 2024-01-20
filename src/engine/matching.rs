@@ -1,6 +1,6 @@
 use std::collections::{BinaryHeap, HashMap, VecDeque};
 
-const FRACTIONAL_SCALAR: u64 = 100000;
+const FRACTIONAL_MAX_LENGTH: usize = 5;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct TickerSymbol([u8; 4]);
@@ -45,14 +45,24 @@ struct Price {
     fractional: u64,
 }
 
-impl Price {
-    fn new(input: f64) -> Self {
-        let integral = input as u64;
-        let fractional = ((input % 1.0) * FRACTIONAL_SCALAR as f64) as u64;
-        Price {
+impl TryFrom<&str> for Price {
+    type Error = &'static str;
+
+    fn try_from(input: &str) -> Result<Self, Self::Error> {
+        let mut split = input.split('.');
+        let integral = split.next().ok_or("Failed to parse integral")?.parse::<u64>().map_err(|_| "Failed to parse integral")?;
+
+        let fractional = split.next().unwrap_or("0");
+        let fractional_len = fractional.len();
+        if fractional_len > FRACTIONAL_MAX_LENGTH {
+            return Err("Fractional too large");
+        }
+        let fractional = fractional.parse::<u64>().map_err(|_| "Failed to parse fractional")? * 10u64.pow((FRACTIONAL_MAX_LENGTH - fractional_len) as u32);
+
+        Ok(Price {
             integral,
             fractional,
-        }
+        })
     }
 }
 
@@ -63,7 +73,7 @@ impl std::fmt::Display for Price {
             "{}.{:0width$}",
             self.integral,
             self.fractional,
-            width = FRACTIONAL_SCALAR.to_string().len() - 1
+            width = FRACTIONAL_MAX_LENGTH
         )
     }
 }
@@ -231,16 +241,18 @@ mod matching_tests {
         let mut orderbook = OrderBook::new("STNK");
         let buy = Order {
             id: 1,
-            price: Price::new(100.05),
+            price: Price::try_from("100.05").unwrap(),
             quantity: 100,
             side: Side::Buy,
         };
         let sell = Order {
             id: 2,
-            price: Price::new(99.95),
+            price: Price::try_from("99.95").unwrap(),
             quantity: 100,
             side: Side::Sell,
         };
+
+        println!("{:?}", buy.price);
 
         orderbook.add_order(sell.clone());
         orderbook.add_order(buy.clone());
