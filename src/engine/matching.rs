@@ -16,11 +16,6 @@ struct Order {
     side: Side,
 }
 
-struct Limit_Item {
-    price: Price,
-    quantity: u64,
-}
-
 struct Limit {
     price: Price,
     orders: VecDeque<Order>,
