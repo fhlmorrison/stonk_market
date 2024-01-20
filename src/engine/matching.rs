@@ -17,7 +17,7 @@ impl TickerSymbol {
 
 impl std::fmt::Display for TickerSymbol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", std::str::from_utf8(&self.0).unwrap_or("NULL".into()))
+        write!(f, "{}", std::str::from_utf8(&self.0).unwrap_or("NULL".into()).trim_end_matches("\0"))
     }
 }
 
@@ -247,4 +247,20 @@ mod matching_tests {
         orderbook.add_order(sell.clone());
         println!("test");
     }
+
+    #[test]
+    fn test_ticker_symbol() {
+        let symbol = TickerSymbol::new("STNK");
+        assert_eq!(symbol.to_string(), "STNK");
+
+        let symbol = TickerSymbol::new("STN");
+        assert_eq!(symbol.to_string(), "STN");
+
+        let symbol = TickerSymbol::new("ST");
+        assert_eq!(symbol.to_string(), "ST");
+
+        let symbol = TickerSymbol::new("STNKY");
+        assert_eq!(symbol.to_string(), "STNK");
+    }
+
 }
