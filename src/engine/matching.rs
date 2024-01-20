@@ -39,6 +39,7 @@ struct Limit {
     price: Price,
     orders: VecDeque<Order>,
 }
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct Price {
     integral: u64,

@@ -3,9 +3,7 @@ use std::{
     net::{TcpListener, TcpStream, UdpSocket},
 };
 
-mod engine;
-
-fn handle_client(mut stream: TcpStream) {
+fn handle_tcp_client(mut stream: TcpStream) {
     let mut buffer: [u8; 1024] = [0; 1024];
 
     stream.read(&mut buffer).expect("Failed to read request");
@@ -13,9 +11,18 @@ fn handle_client(mut stream: TcpStream) {
     let request = String::from_utf8_lossy(&buffer[..]);
     println!("Received request: {}", request);
 
-    let response = "Hello world".as_bytes();
-    stream.write(response).expect("Failed to send response");
+    let response = match request.trim() {
+        "buy" => "Buy order received",
+        "sell" => "Sell order received",
+        _ => "Invalid order type",
+    };
+
+    stream.write(response.as_bytes()).expect("Failed to send response");
 }
+
+//     let response = "Hello world".as_bytes();
+//     stream.write(response).expect("Failed to send response");
+// }
 
 fn main() {
     println!("STONKS! \n");
@@ -26,7 +33,7 @@ fn main() {
         match stream {
             Ok(stream) => {
                 println!("Connection established");
-                std::thread::spawn(|| handle_client(stream));
+                std::thread::spawn(|| handle_tcp_client(stream));
             }
             Err(e) => {
                 eprintln!("Failed to establish connection -> error: {}", e)
@@ -35,7 +42,7 @@ fn main() {
         // let stream = stream.unwrap();
     }
 
-    let price_feed_socket = UdpSocket::bind("127.0.0.1:3400").expect("Failed to bind UDP");
+    // let price_feed_socket = UdpSocket::bind("127.0.0.1:3400").expect("Failed to bind UDP");
 }
 
 // create heap
