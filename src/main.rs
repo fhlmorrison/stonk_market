@@ -3,6 +3,9 @@ use std::{
     net::{TcpListener, TcpStream, UdpSocket},
 };
 
+mod common;
+mod engine;
+
 fn handle_tcp_client(mut stream: TcpStream) {
     let mut buffer: [u8; 1024] = [0; 1024];
 
@@ -17,7 +20,9 @@ fn handle_tcp_client(mut stream: TcpStream) {
         _ => "Invalid order type",
     };
 
-    stream.write(response.as_bytes()).expect("Failed to send response");
+    stream
+        .write(response.as_bytes())
+        .expect("Failed to send response");
 }
 
 //     let response = "Hello world".as_bytes();
@@ -47,26 +52,26 @@ fn main() {
 
 // create heap
 
-    // let buy = Order {
-    //     id: 1,
-    //     price: Price::new(100.05),
-    //     quantity: 100,
-    //     side: Side::Buy,
-    // };
+// let buy = Order {
+//     id: 1,
+//     price: Price::new(100.05),
+//     quantity: 100,
+//     side: Side::Buy,
+// };
 
-    // let sell = Order {
-    //     id: 2,
-    //     price: Price::new(99.95),
-    //     quantity: 100,
-    //     side: Side::Sell,
-    // };
+// let sell = Order {
+//     id: 2,
+//     price: Price::new(99.95),
+//     quantity: 100,
+//     side: Side::Sell,
+// };
 
-    // let mut orderbook = OrderBook::new(1);
+// let mut orderbook = OrderBook::new(1);
 
-    // println!("sell then buy");
-    // orderbook.add_order(sell.clone());
-    // orderbook.add_order(buy.clone());
+// println!("sell then buy");
+// orderbook.add_order(sell.clone());
+// orderbook.add_order(buy.clone());
 
-    // println!("buy then sell");
-    // orderbook.add_order(buy.clone());
-    // orderbook.add_order(sell.clone());
+// println!("buy then sell");
+// orderbook.add_order(buy.clone());
+// orderbook.add_order(sell.clone());

@@ -1,25 +1,8 @@
 use std::collections::{BinaryHeap, HashMap, VecDeque};
 
+use crate::common::TickerSymbol;
+
 const FRACTIONAL_MAX_LENGTH: usize = 5;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct TickerSymbol([u8; 4]);
-
-impl TickerSymbol {
-    fn new(input: &str) -> Self {
-        let mut bytes = [0; 4];
-        input.as_bytes().iter().take(4).enumerate().for_each(|(i, byte)| {
-            bytes[i] = *byte;
-        });
-        TickerSymbol(bytes)
-    }
-}
-
-impl std::fmt::Display for TickerSymbol {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", std::str::from_utf8(&self.0).unwrap_or("NULL".into()).trim_end_matches("\0"))
-    }
-}
 
 #[derive(Debug, Clone, Copy)]
 enum Side {
@@ -51,14 +34,21 @@ impl TryFrom<&str> for Price {
 
     fn try_from(input: &str) -> Result<Self, Self::Error> {
         let mut split = input.split('.');
-        let integral = split.next().ok_or("Failed to parse integral")?.parse::<u64>().map_err(|_| "Failed to parse integral")?;
+        let integral = split
+            .next()
+            .ok_or("Failed to parse integral")?
+            .parse::<u64>()
+            .map_err(|_| "Failed to parse integral")?;
 
         let fractional = split.next().unwrap_or("0");
         let fractional_len = fractional.len();
         if fractional_len > FRACTIONAL_MAX_LENGTH {
             return Err("Fractional too large");
         }
-        let fractional = fractional.parse::<u64>().map_err(|_| "Failed to parse fractional")? * 10u64.pow((FRACTIONAL_MAX_LENGTH - fractional_len) as u32);
+        let fractional = fractional
+            .parse::<u64>()
+            .map_err(|_| "Failed to parse fractional")?
+            * 10u64.pow((FRACTIONAL_MAX_LENGTH - fractional_len) as u32);
 
         Ok(Price {
             integral,
@@ -147,7 +137,12 @@ impl OrderBook {
                                     sell_order.quantity -= order.quantity;
 
                                     // Execute trade at order quantity
-                                    execute_trade(self.symbol,&order, &sell_order, order.quantity.clone());
+                                    execute_trade(
+                                        self.symbol,
+                                        &order,
+                                        &sell_order,
+                                        order.quantity.clone(),
+                                    );
 
                                     order.quantity = 0;
 
@@ -157,7 +152,12 @@ impl OrderBook {
                                     order.quantity -= sell_order.quantity;
 
                                     // Execute trade at sell quantity
-                                    execute_trade(self.symbol,&order, &sell_order, sell_order.quantity);
+                                    execute_trade(
+                                        self.symbol,
+                                        &order,
+                                        &sell_order,
+                                        sell_order.quantity,
+                                    );
 
                                     // Remove empty limit
                                     if sell_limit.orders.is_empty() {
@@ -191,7 +191,12 @@ impl OrderBook {
                                     buy_order.quantity -= order.quantity;
 
                                     // Execute trade at order quantity
-                                    execute_trade(self.symbol,&order, &buy_order, order.quantity.clone());
+                                    execute_trade(
+                                        self.symbol,
+                                        &order,
+                                        &buy_order,
+                                        order.quantity.clone(),
+                                    );
 
                                     order.quantity = 0;
 
@@ -201,7 +206,12 @@ impl OrderBook {
                                     order.quantity -= buy_order.quantity;
 
                                     // Execute trade at sell quantity
-                                    execute_trade(self.symbol,&order, &buy_order, buy_order.quantity);
+                                    execute_trade(
+                                        self.symbol,
+                                        &order,
+                                        &buy_order,
+                                        buy_order.quantity,
+                                    );
 
                                     // Remove empty limit
                                     if buy_limit.orders.is_empty() {
@@ -227,8 +237,8 @@ impl OrderBook {
 
 fn execute_trade(symbol: TickerSymbol, buy: &Order, sell: &Order, quantity: u64) {
     println!(
-        "Trade executed: {} {} @ {:.2} ({} => {})", symbol,
-        quantity, sell.price, buy.id, sell.id
+        "Trade executed: {} {} @ {:.2} ({} => {})",
+        symbol, quantity, sell.price, buy.id, sell.id
     );
     // todo!();
 }
@@ -276,5 +286,4 @@ mod matching_tests {
         let symbol = TickerSymbol::new("STNKY");
         assert_eq!(symbol.to_string(), "STNK");
     }
-
 }
