@@ -1,21 +1,9 @@
 use std::collections::{BinaryHeap, HashMap, VecDeque};
 
+use crate::common::Order;
 use crate::common::Price;
+use crate::common::Side;
 use crate::common::TickerSymbol;
-
-#[derive(Debug, Clone, Copy)]
-enum Side {
-    Buy,
-    Sell,
-}
-
-#[derive(Debug, Clone, Copy)]
-struct Order {
-    id: u64,
-    price: Price,
-    quantity: u64,
-    side: Side,
-}
 
 struct Limit {
     price: Price,
@@ -191,7 +179,7 @@ impl OrderBook {
 fn execute_trade(symbol: TickerSymbol, buy: &Order, sell: &Order, quantity: u64) {
     println!(
         "Trade executed: {} {} @ {:.2} ({} => {})",
-        symbol, quantity, sell.price, buy.id, sell.id
+        symbol, quantity, sell.price, buy.user_id, sell.user_id
     );
     // todo!();
 }
@@ -204,13 +192,13 @@ mod matching_tests {
     fn test() {
         let mut orderbook = OrderBook::new("STNK");
         let buy = Order {
-            id: 1,
+            user_id: 1,
             price: Price::try_from("100.05").unwrap(),
             quantity: 100,
             side: Side::Buy,
         };
         let sell = Order {
-            id: 2,
+            user_id: 2,
             price: Price::try_from("99.95").unwrap(),
             quantity: 100,
             side: Side::Sell,
