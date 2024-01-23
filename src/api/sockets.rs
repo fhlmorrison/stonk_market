@@ -3,7 +3,7 @@ use std::{
     net::{TcpListener, TcpStream, UdpSocket},
 };
 
-fn handle_tcp_client(mut stream: TcpStream) -> std::io::Result<()> {
+pub fn handle_tcp_client(mut stream: TcpStream) -> std::io::Result<()> {
     let mut buffer: [u8; 1024] = [0; 1024];
 
     stream.read(&mut buffer).expect("Failed to read request");
