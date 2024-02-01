@@ -174,6 +174,15 @@ impl OrderBook {
             }
         }
     }
+
+    fn clear(&mut self) {
+        self.buy_limits.drain().for_each(|(price, limit)| {
+            limit
+                .orders
+                .into_iter()
+                .for_each(|order| refund_order(&order));
+        })
+    }
 }
 
 fn execute_trade(symbol: TickerSymbol, buy: &Order, sell: &Order, quantity: u64) {
@@ -184,8 +193,17 @@ fn execute_trade(symbol: TickerSymbol, buy: &Order, sell: &Order, quantity: u64)
     // todo!();
 }
 
+fn refund_order(order: &Order) {
+    println!(
+        "Order refunded: {} {} @ {}",
+        order.user_id, order.quantity, order.price
+    );
+}
+
 #[cfg(test)]
 mod matching_tests {
+    use crate::common::TimeStamp;
+
     use super::*;
 
     #[test]
@@ -193,12 +211,14 @@ mod matching_tests {
         let mut orderbook = OrderBook::new("STNK");
         let buy = Order {
             user_id: 1,
+            timestamp: TimeStamp::new(),
             price: Price::try_from("100.05").unwrap(),
             quantity: 100,
             side: Side::Buy,
         };
         let sell = Order {
             user_id: 2,
+            timestamp: TimeStamp::new(),
             price: Price::try_from("99.95").unwrap(),
             quantity: 100,
             side: Side::Sell,
@@ -211,6 +231,33 @@ mod matching_tests {
         orderbook.add_order(buy.clone());
         orderbook.add_order(sell.clone());
         println!("test");
+    }
+
+    #[test]
+    fn test_clear() {
+        let mut orderbook = OrderBook::new("STNK");
+        let buy = Order {
+            user_id: 1,
+            timestamp: TimeStamp::new(),
+            price: Price::try_from("100.05").unwrap(),
+            quantity: 100,
+            side: Side::Buy,
+        };
+        let sell = Order {
+            user_id: 2,
+            timestamp: TimeStamp::new(),
+            price: Price::try_from("99.95").unwrap(),
+            quantity: 100,
+            side: Side::Sell,
+        };
+
+        println!("{:?}", buy.price);
+
+        orderbook.add_order(sell.clone());
+        orderbook.add_order(buy.clone());
+        println!("test");
+
+        orderbook.clear();
     }
 
     #[test]
