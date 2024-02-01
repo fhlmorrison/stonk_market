@@ -1,5 +1,4 @@
 use std::collections::{BinaryHeap, HashMap, VecDeque};
-use std::ops::Index;
 
 use crate::common::Order;
 use crate::common::Price;
