@@ -1,4 +1,5 @@
 use std::collections::{BinaryHeap, HashMap, VecDeque};
+use std::ops::Index;
 
 use crate::common::Order;
 use crate::common::Price;
@@ -13,6 +14,20 @@ struct Limit {
 impl Limit {
     fn add_order(&mut self, order: Order) {
         self.orders.push_back(order);
+    }
+    fn remove_order(&mut self, order: &Order) -> Option<Order> {
+        if let Some((index, removed_order)) = self
+            .orders
+            .iter()
+            .enumerate()
+            .find(|(i, o)| o.user_id == order.user_id && o.timestamp == order.timestamp)
+            .map(|(i, o)| (i, o.clone()))
+        {
+            self.orders.remove(index);
+            Some(removed_order)
+        } else {
+            None
+        }
     }
 }
 
@@ -182,6 +197,25 @@ impl OrderBook {
                 .into_iter()
                 .for_each(|order| refund_order(&order));
         })
+    }
+
+    fn cancel_order(&mut self, order: &Order) {
+        match order.side {
+            Side::Buy => {
+                if let Some(limit) = self.buy_limits.get_mut(&order.price) {
+                    if let Some(removed_order) = limit.remove_order(order) {
+                        refund_order(&removed_order);
+                    }
+                }
+            }
+            Side::Sell => {
+                if let Some(limit) = self.sell_limits.get_mut(&order.price) {
+                    if let Some(removed_order) = limit.remove_order(order) {
+                        refund_order(&removed_order);
+                    }
+                }
+            }
+        }
     }
 }
 
