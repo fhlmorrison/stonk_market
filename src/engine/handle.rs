@@ -87,4 +87,31 @@ mod handle_test {
         handle.input.send(buy);
         handle.input.send(sell);
     }
+
+    #[test]
+    fn test_multiple() {
+        let handle1 = OrderBookHandle::spawn("AAAA".into());
+        let handle2 = OrderBookHandle::spawn("BBBB".into());
+
+        let buy = Order {
+            user_id: 1,
+            timestamp: TimeStamp::new(),
+            price: Price::try_from("100.05").unwrap(),
+            quantity: 100,
+            side: Side::Buy,
+        };
+        let sell = Order {
+            user_id: 2,
+            timestamp: TimeStamp::new(),
+            price: Price::try_from("99.95").unwrap(),
+            quantity: 100,
+            side: Side::Sell,
+        };
+
+        handle1.input.send(buy);
+        handle1.input.send(sell);
+        handle2.input.send(buy);
+        handle2.input.send(sell);
+
+    }
 }
