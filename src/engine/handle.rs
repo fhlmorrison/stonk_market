@@ -1,12 +1,13 @@
 use std::{sync::mpsc::{self, Receiver, Sender}, thread};
 
-use crate::common::Order;
+use crate::common::{Order, TickerSymbol};
 
 use super::matching::OrderBook;
 
 
 
 pub struct OrderBookHandle {
+    symbol: TickerSymbol,
     input: Sender<Order>,
     output: Receiver<i32>,
 }
@@ -22,10 +23,13 @@ impl OrderBookHandle {
             orderBook: OrderBook::new(ticker)
         };
 
+        let symbol = thread.orderBook.symbol.clone();
+
         thread::spawn(move || thread.listen());
 
 
         OrderBookHandle{
+            symbol: symbol,
             input: orderIn,
             output: tradeOut,
         }
