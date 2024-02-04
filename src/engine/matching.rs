@@ -30,8 +30,8 @@ impl Limit {
     }
 }
 
-struct OrderBook {
-    symbol: TickerSymbol,
+pub struct OrderBook {
+    pub symbol: TickerSymbol,
     buy_prices: BinaryHeap<Price>,
     buy_limits: HashMap<Price, Limit>,
     sell_prices: BinaryHeap<Price>,
@@ -39,7 +39,7 @@ struct OrderBook {
 }
 
 impl OrderBook {
-    fn new(symbol: &str) -> Self {
+    pub fn new(symbol: &str) -> Self {
         OrderBook {
             symbol: TickerSymbol::new(symbol),
             buy_prices: BinaryHeap::new(),
@@ -76,7 +76,7 @@ impl OrderBook {
     }
 
     // FIFO (Price/time priority)
-    fn add_order(&mut self, mut order: Order) {
+    pub fn add_order(&mut self, mut order: Order) {
         match order.side {
             Side::Buy => {
                 while order.quantity > 0 {
@@ -189,7 +189,7 @@ impl OrderBook {
         }
     }
 
-    fn clear(&mut self) {
+    pub fn clear(&mut self) {
         self.buy_limits.drain().for_each(|(price, limit)| {
             limit
                 .orders
