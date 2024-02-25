@@ -8,3 +8,6 @@ mod orders;
 pub use orders::Order;
 pub use orders::Side;
 pub use orders::TimeStamp;
+
+mod trades;
+pub use trades::Trade;

@@ -1,34 +1,34 @@
-use std::{sync::mpsc::{self, Receiver, Sender}, thread};
+use std::{
+    sync::mpsc::{self, Receiver, Sender},
+    thread,
+};
 
-use crate::common::{Order, TickerSymbol};
+use crate::common::{Order, TickerSymbol, Trade};
 
 use super::matching::OrderBook;
-
-
 
 pub struct OrderBookHandle {
     symbol: TickerSymbol,
     input: Sender<Order>,
-    output: Receiver<i32>,
+    output: Receiver<Trade>,
 }
 
 impl OrderBookHandle {
-    pub fn spawn(ticker: &str)-> OrderBookHandle {
+    pub fn spawn(ticker: &str) -> OrderBookHandle {
         let (orderIn, orderOut) = mpsc::channel();
         let (tradeIn, tradeOut) = mpsc::channel();
 
         let mut thread = OrderBookThread {
             input: orderOut,
             output: tradeIn,
-            orderBook: OrderBook::new(ticker)
+            orderBook: OrderBook::new(ticker),
         };
 
         let symbol = thread.orderBook.symbol.clone();
 
         thread::spawn(move || thread.listen());
 
-
-        OrderBookHandle{
+        OrderBookHandle {
             symbol: symbol,
             input: orderIn,
             output: tradeOut,
@@ -42,19 +42,27 @@ impl OrderBookHandle {
 
 struct OrderBookThread {
     input: Receiver<Order>,
-    output: Sender<i32>,
+    output: Sender<Trade>,
     orderBook: OrderBook,
 }
 
 impl OrderBookThread {
-
     fn listen(&mut self) {
         loop {
             let res = self.input.recv();
-           match res {
-            Ok(order) => self.orderBook.add_order(order),
-            Err(_) => break
-           }
+            match res {
+                Ok(order) => {
+                    let trades = self.orderBook.add_order(order);
+                    for trade in trades {
+                        let res2 = self.output.send(trade);
+                        if res2.is_err() {
+                            // TODO add better error handling here
+                            eprintln!("Trade failed to send");
+                        }
+                    }
+                }
+                Err(_) => break,
+            }
         }
         // Cleanup and exit
         self.orderBook.clear();
@@ -67,7 +75,6 @@ mod handle_test {
     use crate::common::{Order, Price, Side, TimeStamp};
 
     use super::OrderBookHandle;
-
 
     #[test]
     fn test_send() {
@@ -116,6 +123,5 @@ mod handle_test {
         handle1.input.send(sell);
         handle2.input.send(buy);
         handle2.input.send(sell);
-
     }
 }

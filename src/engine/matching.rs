@@ -4,6 +4,7 @@ use crate::common::Order;
 use crate::common::Price;
 use crate::common::Side;
 use crate::common::TickerSymbol;
+use crate::common::Trade;
 
 struct Limit {
     price: Price,
@@ -76,7 +77,8 @@ impl OrderBook {
     }
 
     // FIFO (Price/time priority)
-    pub fn add_order(&mut self, mut order: Order) {
+    pub fn add_order(&mut self, mut order: Order) -> Vec<Trade> {
+        let mut trades = Vec::new();
         match order.side {
             Side::Buy => {
                 while order.quantity > 0 {
@@ -91,13 +93,15 @@ impl OrderBook {
                                     // Lower sell quantity
                                     sell_order.quantity -= order.quantity;
 
+                                    let trade_quantity = order.quantity.clone();
+
                                     // Execute trade at order quantity
-                                    execute_trade(
-                                        self.symbol,
+                                    execute_trade(self.symbol, &order, &sell_order, trade_quantity);
+                                    trades.push(Trade::from_orders(
                                         &order,
                                         &sell_order,
-                                        order.quantity.clone(),
-                                    );
+                                        trade_quantity,
+                                    ));
 
                                     order.quantity = 0;
 
@@ -106,13 +110,15 @@ impl OrderBook {
                                     // Lower order quantity
                                     order.quantity -= sell_order.quantity;
 
+                                    let trade_quantity = sell_order.quantity.clone();
+
                                     // Execute trade at sell quantity
-                                    execute_trade(
-                                        self.symbol,
+                                    execute_trade(self.symbol, &order, &sell_order, trade_quantity);
+                                    trades.push(Trade::from_orders(
                                         &order,
                                         &sell_order,
-                                        sell_order.quantity,
-                                    );
+                                        trade_quantity,
+                                    ));
 
                                     // Remove empty limit
                                     if sell_limit.orders.is_empty() {
@@ -145,13 +151,15 @@ impl OrderBook {
                                     // Lower sell quantity
                                     buy_order.quantity -= order.quantity;
 
+                                    let trade_quantity = order.quantity.clone();
+
                                     // Execute trade at order quantity
-                                    execute_trade(
-                                        self.symbol,
+                                    execute_trade(self.symbol, &order, &buy_order, trade_quantity);
+                                    trades.push(Trade::from_orders(
                                         &order,
                                         &buy_order,
-                                        order.quantity.clone(),
-                                    );
+                                        trade_quantity,
+                                    ));
 
                                     order.quantity = 0;
 
@@ -160,6 +168,8 @@ impl OrderBook {
                                     // Lower order quantity
                                     order.quantity -= buy_order.quantity;
 
+                                    let trade_quantity = order.quantity.clone();
+
                                     // Execute trade at sell quantity
                                     execute_trade(
                                         self.symbol,
@@ -167,6 +177,11 @@ impl OrderBook {
                                         &buy_order,
                                         buy_order.quantity,
                                     );
+                                    trades.push(Trade::from_orders(
+                                        &order,
+                                        &buy_order,
+                                        trade_quantity,
+                                    ));
 
                                     // Remove empty limit
                                     if buy_limit.orders.is_empty() {
@@ -187,6 +202,7 @@ impl OrderBook {
                 }
             }
         }
+        return trades;
     }
 
     pub fn clear(&mut self) {
@@ -198,12 +214,13 @@ impl OrderBook {
         })
     }
 
-    fn cancel_order(&mut self, order: &Order) {
+    fn cancel_order(&mut self, order: &Order) -> Result<Order, ()> {
         match order.side {
             Side::Buy => {
                 if let Some(limit) = self.buy_limits.get_mut(&order.price) {
                     if let Some(removed_order) = limit.remove_order(order) {
                         refund_order(&removed_order);
+                        return Ok(removed_order);
                     }
                 }
             }
@@ -211,10 +228,12 @@ impl OrderBook {
                 if let Some(limit) = self.sell_limits.get_mut(&order.price) {
                     if let Some(removed_order) = limit.remove_order(order) {
                         refund_order(&removed_order);
+                        return Ok(removed_order);
                     }
                 }
             }
         }
+        Err(())
     }
 }
 
